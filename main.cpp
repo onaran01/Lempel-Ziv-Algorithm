@@ -1,22 +1,22 @@
 //
 //  main.cpp
-//  CS300_Assignment3
+//  CS300_decompress
 //
-//  Created by Can Onaran on 19.12.2022.
+//  Created by Can Onaran on 30.12.2022.
 //
 
 #include <iostream>
-#include <fstream>
-#include <sstream>
 #include <vector>
 #include <string>
+#include <fstream>
 #include <ostream>
-#include "HashTables.hpp"
+
 using namespace std;
 
+vector<string> charvec(4096);
+
 int main() {
-    HashTable myHash; //Creating hash object
-    string filename1="compin.txt";
+    string filename1="compout.txt";
     ifstream input1;
     ofstream input2;
     
@@ -25,57 +25,43 @@ int main() {
     if(input1.fail()){
         cout<<"Input files cannot be opened"<<endl;
     }
-    int i=0;
-    
-    
-    i=0;
-    char ch;
-    string txt="";
-    while(!input1.eof()){
-        if (!input1.eof()) {
-            input1.get(ch);
-            txt+=ch;
-        }
-        
+    int cur_index;
+    string text="";
+    for (int i=0;i<256;i++){   //Assigns all ascii characters to the vector
+        charvec[i]=char (i);
     }
+    string texts;
+    int pre_index;
+    int index=256;
     
-    int code=0;
-    string txt_ch="";
-    string indexs="";
-    int ind=256;
-    
-    //Creates and searches for prefix
-    for(int i=0;i<txt.length();i++){
-        string fullStr="";
-        fullStr+=txt_ch;
-        fullStr+=txt[i];
-        
-        //checks if string+char is in the vector
-        if(myHash.findVec(fullStr)){
-            txt_ch=fullStr;
-            if(fullStr.length()==1){
-            }//   if it is in the vector our new string will be old string+char
+    //Looks first char since it should be on vector
+    input1>>cur_index;
+    pre_index=cur_index;
+    texts+=char(cur_index);
+    //Looks each character
+    while(input1>>cur_index){
+        // when character or integer not found in vector
+        if(charvec[cur_index]==""){
+            charvec[index++]=charvec[pre_index]+  charvec[pre_index][0];
             
+            texts+=charvec[pre_index]+charvec[pre_index][0];
+            pre_index=cur_index;
         }
-        //if not add that new string to the vector
-        else if(myHash.findVec(fullStr)==false){
-            myHash.insert(fullStr); //inert element to the hash
-            string changer=to_string(myHash.indexReturner(myHash.findPos(txt_ch))); //finds indexes of elements
-            indexs+=changer;
-            code++;
-            indexs+=" ";
-            txt_ch=txt[i];
-            ind++;
+        
+        // when character or integer found in vector
+        else{
+            
+            texts+=charvec[cur_index];
+            charvec[index++]=charvec[pre_index]+charvec[cur_index][0];
+            pre_index=cur_index;
         }
+        
     }
-    //Writing to compout.txt
 
+    //Writing to decompout.txt
     ofstream myfile;
-    myfile.open("compout.txt");
-    
-    myfile<<indexs;
+    myfile.open("decompout.txt");
+    myfile<<texts;
     myfile.close();
 
-    return 0;
-}
-
+    }
